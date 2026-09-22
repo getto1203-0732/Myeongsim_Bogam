@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학생 생활지도 명심보감 필사 양식 생성기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Serif KR (명심보감 서체), Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .font-serif-kr {
+            font-family: 'Noto Serif KR', serif;
+        }
+        
+        /* 화면 미리보기용 A4 스타일 */
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            padding: 8mm 10mm;
+            margin: 0 auto 20px auto;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            position: relative;
+            page-break-after: always;
+            overflow: hidden;
+        }
+
+        /* 노트 줄선 스타일 */
+        .note-line {
+            border-bottom: 1px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 인쇄 시 전용 CSS (1페이지 여백 및 A4 1장 초과 문제 완벽 해결) */
+        @media print {
+            html, body {
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                overflow: visible !important;
+            }
+            header, .no-print {
+                display: none !important;
+            }
+            main {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                grid-template-columns: none !important;
+            }
+            .print-area, #pagesContainer {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            .a4-page {
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                padding: 8mm 10mm !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                border-width: 1.5px !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- 네비게이션 / 헤더 -->
+    <header class="bg-slate-900 text-white shadow-md no-print sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-600 p-2 rounded-lg text-2xl font-serif-kr font-bold">明</div>
+                <div>
+                    <h1 class="text-xl font-bold font-serif-kr">생활지도 명심보감 필사 양식 생성기</h1>
+                    <p class="text-xs text-slate-400">정통 명심보감 구절 기반 맞춤형 반성 필사지 제작 도구</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-5 rounded-lg shadow transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    인쇄하기 / PDF 저장
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 왼쪽 컨트롤 패널 (인쇄 시 숨김) -->
+        <section class="lg:col-span-4 bg-white p-5 rounded-xl shadow-md border border-slate-200 h-fit space-y-5 no-print">
+            <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                양식 설정 옵션
+            </h2>
+
+            <!-- 1. 지도 유형 선택 -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. 생활지도 유형 선택</label>
+                <select id="typeSelect" onchange="onTypeChange()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 font-medium">
+                    <option value="danger">⚠️ 위험한 장난 / 안전수칙 위반</option>
+                    <option value="tardy">⏰ 지각 / 무단 결과 / 시간관리</option>
+                    <option value="makeup">💄 화장 / 용모 / 단정함 위반</option>
+                    <option value="attitude">📖 수업 태도 불량 / 산만함</option>
+                    <option value="speech">🗣️ 언행 / 욕설 / 고운말 미사용</option>
+                    <option value="etiquette">🙇 예의 / 거친 버릇 / 불손함</option>
+                </select>
+            </div>
+
+            <!-- 2. 학교 기본 정보 설정 -->
+            <div class="space-y-2 border-t pt-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase">2. 양식 기본 정보</label>
+                <div>
+                    <label class="text-[11px] text-slate-500 block mb-1">학교 이름 (상단 표기용)</label>
+                    <input type="text" id="schoolName" value="○○중학교" placeholder="학교명 입력" oninput="renderPages()" class="w-full p-2 border border-slate-300 rounded text-sm">
+                </div>
+                <p class="text-[11px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                    ✍️ 학생 성명, 학년/반/번호, 작성 일자는 출력 후 학생이 직접 수기로 작성하도록 인쇄됩니다.
+                </p>
+            </div>
+
+            <!-- 3. 양식 페이지 수 설정 -->
+            <div class="space-y-3 border-t pt-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase">3. 양식 페이지 수 설정</label>
+                
+                <div class="bg-amber-50 p-2.5 rounded border border-amber-200 text-xs text-amber-900 leading-relaxed">
+                    ✨ <strong>1페이지당 20개 명심보감 구절 전체</strong>가 포함됩니다.<br>
+                    📄 2페이지 이상 설정 시 <strong>반성 및 서명란(학생, 지도교사, 담임교사, 학년부장)은 마지막 페이지에만</strong> 표시됩니다.
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs text-slate-600 font-bold">생성할 페이지 수:</label>
+                        <span id="repeatCountCount" class="text-amber-700 font-bold text-sm">1장 (1페이지)</span>
+                    </div>
+                    <input type="range" id="repeatCount" min="1" max="10" value="1" oninput="updateCountText(); renderPages();" class="w-full accent-amber-600">
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>1장</span>
+                        <span>5장</span>
+                        <span>10장</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 명심보감 20개 전체 목록 보기 토글 -->
+            <div class="border-t pt-3">
+                <button onclick="toggleListModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded border transition flex items-center justify-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    선택한 유형의 명심보감 20개 원문 구절 보기
+                </button>
+            </div>
+        </section>
+
+        <!-- 오른쪽 미리보기 영역 (인쇄 시 이 부분만 출력됨) -->
+        <section class="lg:col-span-8 print-area flex flex-col items-center">
+            <!-- 안내 뱃지 (화면 출력 전용) -->
+            <div class="no-print w-full max-w-[210mm] mb-3 flex justify-between items-center text-xs text-slate-500 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                <span class="flex items-center gap-1 text-amber-800 font-medium">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    A4 규격 인쇄 미리보기입니다. [인쇄하기] 버튼을 누르면 서식만 깔끔하게 출력됩니다.
+                </span>
+                <span id="pageCountBadge" class="bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">총 1장</span>
+            </div>
+
+            <!-- 동적으로 생성되는 A4 페이지들 -->
+            <div id="pagesContainer" class="w-full flex flex-col items-center">
+                <!-- Javascript로 A4 페이지들이 동적으로 삽입됩니다 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 20개 목록 모달 (인쇄시 숨김) -->
+    <div id="listModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                <h3 class="font-bold font-serif-kr text-lg" id="modalTitle">명심보감 구절 리스트 (20개)</h3>
+                <button onclick="toggleListModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 space-y-3" id="modalContent">
+                <!-- 20개 목록 삽입 -->
+            </div>
+            <div class="p-3 bg-slate-100 border-t text-right">
+                <button onclick="toggleListModal()" class="px-4 py-1.5 bg-slate-700 text-white text-xs rounded hover:bg-slate-800">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 정통 명심보감 원문 구절 기반 데이터셋 (총 6가지 카테고리, 각 20개)
+        const myeongsimData = {
+            danger: {
+                title: "⚠️ 위험한 장난 / 안전수칙 위반 성찰",
+                list: [
+                    { hangul: "신체발부 수지부모 불감훼상 효지시야", mean: "몸과 터럭과 피부는 부모에게 받은 것이니, 감히 훼손하여 다치게 하지 않는 것이 효도의 시작이다. (효행편)" },
+                    { hangul: "물이악소이위지 물이선소이불위", mean: "작은 악이라도 장난 삼아 행하지 말고, 작은 선이라도 소홀히 하지 말라. (성심편)" },
+                    { hangul: "화복무문 유인자호", mean: "화와 복은 정해진 문이 없어, 오직 사람이 스스로 불러들이는 것이다. (성심편)" },
+                    { hangul: "기소불원 물시어인", mean: "내가 당하고 싶지 않은 일을 남에게 행하지 말라. (성심편)" },
+                    { hangul: "의수분안명 추길피웅", mean: "마땅히 분수를 지키고 운명에 편안하며, 길함을 좇고 화를 피하라. (안분편)" },
+                    { hangul: "신종여시 즉무패사", mean: "마무리를 시작처럼 신중히 하면 일을 그르치거나 다칠 리가 없다. (정기편)" },
+                    { hangul: "일실족위천고한", mean: "한 번 발을 잘못 디디면 천고의 한이 되듯 무모한 장난은 큰 화를 부른다. (성심편)" },
+                    { hangul: "거안사위 사즉유비 유비무환", mean: "편안할 때 위험을 생각하고 미리 준비하면 근심과 사고가 없다. (성심편)" },
+                    { hangul: "망동즉실 망언즉과", mean: "망령되이 움직이고 경솔하게 행동하면 무언가를 잃고 허물이 생긴다. (정기편)" },
+                    { hangul: "총명광지 수지이우", mean: "아무리 총명하고 지혜가 넓어도 신중하고 경건함으로 스스로를 지켜라. (정기편)" },
+                    { hangul: "인일시지기 면백일지우", mean: "한때의 충동과 순간의 장난을 참으면 백 일 동안의 근심을 면한다. (성심편)" },
+                    { hangul: "여림심연 여리박빙", mean: "깊은 못에 임하듯, 얇은 얼음을 밟듯 항상 행동에 두려워하고 경계하라. (존심편)" },
+                    { hangul: "화생어경홀 환생어다욕", mean: "재앙은 경솔하고 소홀함에서 생기고, 근심은 욕심이 많은 데서 생긴다. (성심편)" },
+                    { hangul: "근언신행 내군자지본", mean: "말을 삼가고 행동을 신중히 하는 것이 스스로를 지키는 근본이다. (정기편)" },
+                    { hangul: "악관약만 천필주지", mean: "작은 나쁜 습관이라도 가득 차면 결국 재앙을 받게 된다. (계선편)" },
+                    { hangul: "무병제일귀 무화제일락", mean: "병이 없는 것이 가장 귀하고, 사고와 화가 없는 것이 가장 큰 즐거움이다. (성심편)" },
+                    { hangul: "안불가망위 치불가망란", mean: "편안할 때도 위태로움을 잊지 말고, 항상 행동을 경계하라. (정기편)" },
+                    { hangul: "욕속즉부달 견소리즉대사불성", mean: "서두르면 이루지 못하고, 순간의 장난에 눈이 어두우면 큰일을 그르친다. (성심편)" },
+                    { hangul: "과이불개 시위과의", mean: "잘못이나 허물이 있으면서도 고치지 않는 것, 이것이야말로 진짜 허물이다. (성심편)" },
+                    { hangul: "개과불린 추선여류", mean: "잘못을 깨달았으면 고치기를 주저하지 말고 선을 따르라. (성심편)" }
+                ]
+            },
+            tardy: {
+                title: "⏰ 지각 / 무단 결과 / 시간관리 성찰",
+                list: [
+                    { hangul: "일일지계 재어신 일년지계 재어춘", mean: "하루의 계획은 아침에 있고, 일년의 계획은 봄에 있다. (입교편)" },
+                    { hangul: "성년부중래 일일난재신", mean: "젊은 날은 다시 오지 않고, 하루에 아침은 두 번 오지 않는다. (근학편)" },
+                    { hangul: "급시당면려 세월부대인", mean: "때를 놓치지 말고 힘써야 하니, 세월은 사람을 기다려주지 않는다. (근학편)" },
+                    { hangul: "근위무가지보 신시호신지부", mean: "부지런함은 값으로 따질 수 없는 보배요, 신중함은 몸을 보호하는 부적이다. (정기편)" },
+                    { hangul: "태타자 빈궁지원 근로자 부귀지본", mean: "게으름은 가난과 부족함의 근원이고, 부지런함은 성취의 근본이다. (성심편)" },
+                    { hangul: "업정어근 황어희", mean: "학업과 일은 부지런함으로 성취되고, 놀고 게으름 피움으로 황폐해진다. (근학편)" },
+                    { hangul: "금일불학 유명일 시부대인", mean: "오늘 배우지 않고 내일이 있다 하지 말라. 시간은 기다리지 않는다. (근학편)" },
+                    { hangul: "소년이로학난성 일촌광음불가경", mean: "소년은 늙기 쉽고 학문은 이루기 어려우니 짧은 시간이라도 가볍게 여기지 말라. (근학편)" },
+                    { hangul: "범사예즉립 불예즉폐", mean: "모든 일은 미리 준비하면 서고, 미리 준비하지 않으면 그르치게 된다. (정기편)" },
+                    { hangul: "근자 취보지문 타자 산재지호", mean: "부지런함은 보배를 모으는 문이요, 게으름은 성취를 흩뿌리는 문이다. (성심편)" },
+                    { hangul: "막도군행조 경유조행인", mean: "내가 일찍 길을 나섰다 말하지 말라, 나보다 더 일찍 움직이는 사람이 있다. (성심편)" },
+                    { hangul: "작조과 작조개 금조과 금조개", mean: "어제 아침의 허물은 어제 고치고, 오늘 아침의 허물은 오늘 바로 고쳐라. (성심편)" },
+                    { hangul: "적선지가 필유여경 적불선지가 필유여앙", mean: "성실함을 쌓은 사람에게는 경사가 남고, 불선과 게으름을 쌓으면 화가 남는다. (계선편)" },
+                    { hangul: "태만릉지 종무소성", mean: "게으르고 느슨하게 시간을 보내면 끝내 이루는 것이 없다. (정기편)" },
+                    { hangul: "신흥야매 숙야비해", mean: "아침 일찍 일어나고 밤늦게 자며 밤낮으로 게으르지 말라. (존심편)" },
+                    { hangul: "기허광음 허도과거", mean: "얼마 되지 않는 소중한 시간을 헛되이 세월만 보낼 것인가. (근학편)" },
+                    { hangul: "학여역수행주 부진즉퇴", mean: "배움과 성장은 물을 거슬러 배를 노 젓는 것 같아 나아가지 않으면 즉시 퇴보한다. (근학편)" },
+                    { hangul: "물위금일불학이유래일", mean: "오늘 하지 않고 내일이 있다고 말하지 말라. (근학편)" },
+                    { hangul: "일일신 우일신", mean: "날마다 새롭게 하고, 또 날마다 새롭게 부지런히 하라. (정기편)" },
+                    { hangul: "세월여류 불가복추", mean: "세월은 흘러가는 물과 같아서 다시 쫓아갈 수 없다. (근학편)" }
+                ]
+            },
+            makeup: {
+                title: "💄 화장 / 용모 / 단정함 위반 성찰",
+                list: [
+                    { hangul: "식외불여수내 식모불여수심", mean: "바깥을 꾸미는 것은 내면을 닦는 것만 못하고, 용모를 꾸미는 것은 마음을 닦는 것만 못하다. (성심편)" },
+                    { hangul: "용모단정 심지광명", mean: "용모가 단정하면 마음 바탕도 밝고 깨끗해진다. (정기편)" },
+                    { hangul: "교언영색 선의인", mean: "말을 교묘하게 하고 얼굴빛을 지나치게 꾸미는 사람에게는 인함이 적다. (정기편)" },
+                    { hangul: "엄이률기 관이대인", mean: "자기 자신의 태도와 용모는 엄격히 단정히 하고, 남을 대할 때는 관대하게 하라. (정기편)" },
+                    { hangul: "금의옥식 불여적덕", mean: "화려한 옷으로 겉을 꾸밈은 내면에 덕을 쌓는 것만 못하다. (안분편)" },
+                    { hangul: "내실즉외화 내허즉외식", mean: "내면이 알차면 외면이 저절로 빛나고, 내면이 비어있으면 겉모습만 꾸미게 된다. (성심편)" },
+                    { hangul: "질승문즉야 문승질즉사", mean: "바탕이 꾸밈보다 지나치면 거칠고, 꾸밈이 바탕보다 지나치면 겉치레만 남는다. (정기편)" },
+                    { hangul: "의관정제 시청단엄", mean: "옷과 차림새를 정제하고, 보고 듣는 태도를 단정하고 엄숙하게 하라. (입교편)" },
+                    { hangul: "화려지복 도요인목", mean: "화려한 옷과 과도한 화장은 한갓 남의 눈을 어지럽힐 뿐이다. (안분편)" },
+                    { hangul: "대교약졸 대변약눌", mean: "참된 아름다움은 오히려 소박해 보이고, 진실한 말은 어눌해 보인다. (정기편)" },
+                    { hangul: "미옥생어니도 연화출어오니", mean: "아름다운 옥도 진흙에서 나오듯 진정한 아름다움은 겉치장에 있지 않다. (성심편)" },
+                    { hangul: "부윤옥 덕윤신", mean: "부는 집을 윤택하게 하고, 덕은 자신과 몸가짐을 윤택하게 한다. (성심편)" },
+                    { hangul: "수신여옥 결백무하", mean: "몸을 옥처럼 깨끗이 지켜 티없이 정갈하게 하라. (정기편)" },
+                    { hangul: "사자부이부족 검자빈이유여", mean: "겉모습을 사치스럽게 꾸미는 자는 넘쳐도 부족하고, 소박한 자는 여유가 있다. (안분편)" },
+                    { hangul: "모공이심불성 가야", mean: "겉모습만 가꾸고 마음에 정성이 없으면 거짓이다. (성심편)" },
+                    { hangul: "심정즉신정 신정즉의관단", mean: "마음이 바르면 몸이 바르고, 몸이 바르면 용모와 복장이 절로 단정해진다. (정기편)" },
+                    { hangul: "박소무화 내군자지풍", mean: "화려하게 꾸미지 않는 것이 군자의 바른 품격이다. (안분편)" },
+                    { hangul: "욕식기모 선정기심", mean: "용모를 바르게 가꾸고자 하거든 먼저 그 마음부터 바르게 하라. (정기편)" },
+                    { hangul: "허영도로 무익어신", mean: "겉모습의 허영은 한갓 헛된 수고일 뿐, 내면의 성장에는 아무 이로움이 없다. (성심편)" },
+                    { hangul: "덕윤신 내면지미", mean: "덕성을 함양하는 것이 사람의 가장 훌륭한 빛남이다. (정기편)" }
+                ]
+            },
+            attitude: {
+                title: "📖 수업 태도 불량 / 산만함 성찰",
+                list: [
+                    { hangul: "학여불급 유공실지", mean: "배움은 미치지 못할 듯이 열중하고, 오히려 그것을 잃을까 두려워하라. (근학편)" },
+                    { hangul: "자왈 학이시습지 불역열호", mean: "공자께서 말씀하시기를 배우고 때때로 익히면 또한 기쁘지 아니한가. (근학편)" },
+                    { hangul: "존사중도 내학자지본", mean: "스승을 존경하고 가르침의 길을 중히 여기는 것이 배우는 사람의 근본이다. (입교편)" },
+                    { hangul: "학이불사즉망 사이불학즉태", mean: "배우기만 하고 생각하지 않으면 어둡고, 생각만 하고 배우지 않으면 위태롭다. (근학편)" },
+                    { hangul: "민이호학 불치하문", mean: "영민하면서도 배우기를 좋아하고, 남에게 묻는 것을 부끄러워하지 말라. (근학편)" },
+                    { hangul: "삼인행 필유아사언", mean: "세 사람이 길을 가면 반드시 나의 스승이 될 만한 사람이 있다. (근학편)" },
+                    { hangul: "사사여사부 청교여청", mean: "스승 섬기기를 부모 섬기듯 하고, 가르침 듣기를 엄한 명을 듣듯 하라. (입교편)" },
+                    { hangul: "옥불탁 불성기 인불학 부지의", mean: "옥은 깎지 않으면 그릇이 되지 못하고, 사람은 배우지 않으면 의리를 알지 못한다. (입교편)" },
+                    { hangul: "심불재외 전심치지", mean: "마음을 밖으로 흩뜨리지 말고 오직 하나에 뜻을 모아 집중하라. (존심편)" },
+                    { hangul: "청화수청진 청교수청성", mean: "말을 들을 때는 진실하게 듣고, 가르침을 들을 때는 정성스럽게 들으라. (언어편)" },
+                    { hangul: "온고이지신 가이위사의", mean: "옛것을 익히고 새것을 알면 남의 스승이 될 수 있다. (근학편)" },
+                    { hangul: "부지즉문 불능즉학", mean: "알지 못하면 물어보고, 하지 못하면 배워야 한다. (근학편)" },
+                    { hangul: "학문여역수행주 부진즉퇴", mean: "학문은 물을 거슬러 배를 모는 것 같아서 나아가지 않으면 곧 퇴보한다. (근학편)" },
+                    { hangul: "시사명 청사총", mean: "볼 때는 밝게 보기를 생각하고, 들을 때는 밝고 바르게 듣기를 생각하라. (정기편)" },
+                    { hangul: "태만폐학 후회막급", mean: "게으름으로 학업을 폐하면 나중에 후회해도 소용이 없다. (근학편)" },
+                    { hangul: "경기사자 광지도", mean: "그 스승을 존경하는 자가 그 배움의 길을 넓힐 수 있다. (입교편)" },
+                    { hangul: "전일불잡 내득학문", mean: "마음을 하나로 모으고 산만함을 없애야 학문을 얻을 수 있다. (존심편)" },
+                    { hangul: "허심수교 적선성덕", mean: "마음을 비우고 겸손히 가르침을 받아 선을 쌓고 덕을 이루라. (정기편)" },
+                    { hangul: "유이불학 노무소지", mean: "어려서 배우지 않으면 늙어서 아는 것이 없게 된다. (근학편)" },
+                    { hangul: "독학이무우 즉고루이과문", mean: "혼자서만 배우고 나눔이 없으면 식견이 좁고 아는 것이 적어진다. (교우편)" }
+                ]
+            },
+            speech: {
+                title: "🗣️ 언행 / 욕설 / 고운말 미사용 성찰",
+                list: [
+                    { hangul: "구시화지문 설시참신도", mean: "입은 재앙을 부르는 문이요, 혀는 몸을 베는 칼이다. (언어편)" },
+                    { hangul: "일언부중 천어무용", mean: "한 마디 말이 이치에 맞지 않으면 천 마디 말이 아무 소용이 없다. (언어편)" },
+                    { hangul: "병종구입 화종구출", mean: "병은 입을 통해 들어오고, 재앙과 화는 입을 통해 나간다. (언어편)" },
+                    { hangul: "다언삭궁 불여수중", mean: "말이 많으면 궁지에 몰리기 쉬우니 마음의 중심을 지킴만 못하다. (언어편)" },
+                    { hangul: "상인이언 심어모극", mean: "말로써 사람을 상하게 하는 것은 창이나 칼로 찌르는 것보다 심하다. (언어편)" },
+                    { hangul: "출언유장 설화유법", mean: "말 내뱉음에는 장단과 예의가 있고, 말하는 데에는 법도가 있어야 한다. (언어편)" },
+                    { hangul: "언이유신 시위군자", mean: "말에 믿음과 진실함이 있어야 이에 바른 인격을 갖춘 사람이라 할 수 있다. (언어편)" },
+                    { hangul: "악어상인 통여도갈", mean: "거칠고 나쁜 말은 사람을 상하게 하여 통증이 칼로 베는 것과 같다. (언어편)" },
+                    { hangul: "이구첩급 종필소화", mean: "입만 살아서 가볍고 경솔하게 말하면 끝내 반드시 화를 부른다. (언어편)" },
+                    { hangul: "근언신행 피화추복", mean: "말을 삼가고 행동을 신중히 함으로써 화를 피하고 복을 부르라. (언어편)" },
+                    { hangul: "미언가이시 존행가이가인", mean: "아름답고 고운 말은 타인에게 존경을 받고, 존중하는 행동은 덕을 더한다. (언어편)" },
+                    { hangul: "눌어언이민어행", mean: "말은 어눌하고 신중하게 하고, 행동은 민첩하고 바르게 하라. (정기편)" },
+                    { hangul: "일언기출 사마난추", mean: "한 마디 말이 한 번 입에서 나오면 네 마리 말이 이끄는 수레로도 돌이키기 어렵다. (언어편)" },
+                    { hangul: "언다실중 불여근묵", mean: "말이 많으면 적중함을 잃기 쉬우니 삼가 침묵함만 못하다. (언어편)" },
+                    { hangul: "악언불입어이", mean: "나쁜 말과 거친 욕설은 아예 귀에 들여놓지도 말라. (언어편)" },
+                    { hangul: "영청청진 근언신청", mean: "귀담아들을 때는 진실을 듣고, 말할 때는 삼가 신중히 하라. (언어편)" },
+                    { hangul: "증인이언 중어주옥", mean: "남에게 고운 말 한 마디를 선사함은 구슬이나 옥보다 더 귀하다. (언어편)" },
+                    { hangul: "악언출어구 필유악보", mean: "나쁜 말이 내 입에서 나가면 반드시 그 나쁜 응보가 나에게 돌아온다. (언어편)" },
+                    { hangul: "청기언 이관기행", mean: "그 사람의 말을 들었으면 반드시 그 행동도 함께 살펴보아야 한다. (언어편)" },
+                    { hangul: "언불충신 행불독경 수주리 행호재", mean: "말이 충실하고 믿음직하지 못하면 바르게 통할 수 없다. (언어편)" }
+                ]
+            },
+            etiquette: {
+                title: "🙇 예의 / 거친 버릇 / 불손함 성찰",
+                list: [
+                    { hangul: "불학례 무이립", mean: "예의를 배우지 않으면 사회와 공동체에 올곧게 바로 설 수 없다. (입교편)" },
+                    { hangul: "예상왕래 래이불왕 비례야", mean: "예의는 서로 주고받는 것을 숭상하니, 가고 오지 않으면 예의가 아니다. (예지편)" },
+                    { hangul: "경인자 인항경지 애인자 인항애지", mean: "남을 공경하는 자는 남이 항상 공경하고, 남을 사랑하는 자는 남이 항상 사랑한다. (교우편)" },
+                    { hangul: "장유유서 존비유례", mean: "어른과 아이 사이에 차례가 있고, 사람과 사람 사이에 마땅한 예의가 있다. (입교편)" },
+                    { hangul: "공근어례 원치욕야", mean: "공손함이 예의에 맞으면 치욕과 부끄러움을 멀리할 수 있다. (정기편)" },
+                    { hangul: "시사명 청사총 모사온 용사공", mean: "시선은 밝게, 용모는 온화하게, 태도는 공손하게 하라. (정기편)" },
+                    { hangul: "교오자만 필소기화", mean: "교만하고 잘난 체하여 자만하면 반드시 그 재앙을 부른다. (성심편)" },
+                    { hangul: "겸수익 만초손", mean: "겸손함은 이익을 얻고, 자만함은 손실을 부른다. (성심편)" },
+                    { hangul: "공즉불모 관즉득중", mean: "공손하면 업신여김을 당하지 않고, 관대하면 사람들의 마음을 얻는다. (정기편)" },
+                    { hangul: "조포지행 자해해인", mean: "거칠고 폭력적인 행동은 나 자신도 해치고 타인도 해친다. (정기편)" },
+                    { hangul: "범인불가경홀 수당경중", mean: "무릇 누구든 사람을 가볍게 대하거나 소홀히 말며, 마땅히 존중하라. (교우편)" },
+                    { hangul: "거처공 집사경 여인충", mean: "일상 태도는 공손하게 하고, 일을 맡았을 때는 정성스럽게 하며, 사람 대하기를 진실되게 하라. (정기편)" },
+                    { hangul: "태도단정 거지우아", mean: "태도를 단정히 하고 거동과 행동을 정중하게 하라. (입교편)" },
+                    { hangul: "오불가장 욕불가종", mean: "오만한 마음을 키우지 말고, 욕심과 거친 충동을 방치하지 말라. (정기편)" },
+                    { hangul: "예절자 처세지본", mean: "예절이라는 것은 사람들과 함께 살아가는 올바른 세상 처세의 근본이다. (예지편)" },
+                    { hangul: "견현사제언 견불현이내자성야", mean: "현명한 사람을 보면 같아지기를 생각하고, 불손한 사람을 보면 스스로 성찰하라. (성심편)" },
+                    { hangul: "물이기장 이형인지단", mean: "나의 장점으로 남의 단점을 드러내거나 헐뜯지 말라. (정기편)" },
+                    { hangul: "개과불린 추선여류", mean: "허물을 고치는 데 주저하지 말고, 선과 예의를 따르기를 물 흐르듯 하라. (성심편)" },
+                    { hangul: "기소불원 물시어인", mean: "내가 원하지 않는 바를 남에게 행하지 말라. (정기편)" },
+                    { hangul: "입경문금 입국문속 입문문휘", mean: "어느 곳에 가면 그곳의 규칙을 묻고 남의 집에 들어서면 예의를 지키라. (예지편)" }
+                ]
+            }
+        };
+
+        function toggleListModal() {
+            const modal = document.getElementById('listModal');
+            if (!modal) return;
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                const typeKey = document.getElementById('typeSelect').value;
+                const categoryData = myeongsimData[typeKey];
+                document.getElementById('modalTitle').textContent = `${categoryData.title} (20개 원문 구절)`;
+                const modalContent = document.getElementById('modalContent');
+                modalContent.innerHTML = categoryData.list.map((item, idx) => `
+                    <div class="p-2 border-b border-slate-200 text-xs">
+                        <span class="font-bold text-amber-950">${idx + 1}. [ ${item.hangul} ]</span>
+                        <p class="text-slate-600 mt-0.5">${item.mean}</p>
+                    </div>
+                `).join('');
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function updateCountText() {
+            const countInput = document.getElementById('repeatCount');
+            const count = countInput ? countInput.value : 1;
+            const countDisplay = document.getElementById('repeatCountCount');
+            if (countDisplay) {
+                countDisplay.textContent = `${count}장 (${count}페이지)`;
+            }
+            const badge = document.getElementById('pageCountBadge');
+            if (badge) {
+                badge.textContent = `총 ${count}장`;
+            }
+        }
+
+        function onTypeChange() {
+            renderPages();
+        }
+
+        function renderPages() {
+            const container = document.getElementById('pagesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const typeKey = document.getElementById('typeSelect').value;
+            const categoryData = myeongsimData[typeKey] || myeongsimData.danger;
+            
+            const schoolNameInput = document.getElementById('schoolName');
+            const schoolName = (schoolNameInput && schoolNameInput.value) ? schoolNameInput.value : '○○중학교';
+            const repeatCountInput = document.getElementById('repeatCount');
+            const repeatCount = (repeatCountInput) ? (parseInt(repeatCountInput.value) || 1) : 1;
+
+            for (let pageIdx = 0; pageIdx < repeatCount; pageIdx++) {
+                const isLastPage = (pageIdx === repeatCount - 1);
+
+                // A4 297mm 규격에 빈 공간 없이 꽉 차도록 여백 및 줄 높이 확장
+                const itemMarginClass = 'mb-[2px] pb-[1px]';
+                const lineHClass = 'h-[20px]';
+
+                const phrasesListHTML = categoryData.list.map((item, idx) => `
+                    <div class="${itemMarginClass} border-b border-slate-200">
+                        <div class="text-[9.5px] leading-tight font-medium text-slate-900 flex flex-wrap gap-x-1">
+                            <span class="font-bold text-amber-950">${idx + 1}. [ ${item.hangul} ]</span>
+                            <span class="text-slate-600 text-[9px]">- ${item.mean}</span>
+                        </div>
+                        <div class="note-line text-[8.5px] text-slate-400 ${lineHClass} pl-1 flex items-center" style="border-bottom: 1px dashed #cbd5e1;">
+                            (필사)
+                        </div>
+                    </div>
+                `).join('');
+
+                const reflectionBoxHTML = isLastPage ? `
+                    <div class="border border-slate-800 p-2 rounded-sm bg-slate-50/50 mt-2">
+                        <h3 class="text-[10px] font-bold text-slate-900 mb-1">
+                            ■ 명심보감의 가르침에 따른 나의 반성 및 앞으로의 다짐 (3줄)
+                        </h3>
+                        <div class="space-y-1">
+                            <div class="note-line h-[22px]" style="border-bottom: 1px dashed #cbd5e1;"></div>
+                            <div class="note-line h-[22px]" style="border-bottom: 1px dashed #cbd5e1;"></div>
+                            <div class="note-line h-[22px]" style="border-bottom: 1px dashed #cbd5e1;"></div>
+                        </div>
+                    </div>
+                ` : '';
+
+                const footerHTML = isLastPage ? `
+                    <div class="border-t-2 border-slate-900 pt-2 mt-2">
+                        <p class="text-[9.5px] text-center text-slate-700 mb-1.5 font-serif-kr">
+                            위 본인은 명심보감 20개 구절의 가르침을 마음에 새기고 자신의 행동을 깊이 반성하며, 향후 동일한 행동을 반복하지 않을 것을 다짐합니다.
+                        </p>
+                        <div class="flex justify-between items-center text-[10px] px-3 py-1.5 bg-slate-50 border border-slate-300 rounded">
+                            <div>
+                                작성자 학생: <span class="font-bold border-b border-slate-800 px-3 py-0.5">______________</span> (인/서명)
+                            </div>
+                            <div class="flex gap-2.5 text-[10px]">
+                                <div>지도교사: <span class="inline-block w-8 border-b border-slate-800">&nbsp;</span> (인)</div>
+                                <div>담임교사: <span class="inline-block w-8 border-b border-slate-800">&nbsp;</span> (인)</div>
+                                <div>학년부장: <span class="inline-block w-8 border-b border-slate-800">&nbsp;</span> (인)</div>
+                            </div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="border-t border-slate-300 pt-1.5 mt-2 flex justify-between items-center text-[9.5px] text-slate-500 font-serif-kr">
+                        <span>※ 다음 페이지에 계속해서 명심보감 필사를 진행합니다.</span>
+                        <span class="font-bold text-slate-700">[ ${pageIdx + 1} / ${repeatCount} 페이지 ]</span>
+                    </div>
+                `;
+
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'a4-page flex flex-col justify-between border-2 border-slate-800';
+
+                pageDiv.innerHTML = `
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="border-b-2 border-slate-900 pb-1 mb-1.5 flex justify-between items-end">
+                                <div>
+                                    <span class="text-[9px] text-slate-500 font-bold tracking-widest block uppercase">${schoolName} 생활지도 서식</span>
+                                    <h1 class="text-base font-black font-serif-kr text-slate-900 tracking-tight">명심보감(明心寶鑑) 필사 및 반성 양식</h1>
+                                </div>
+                                <div class="text-right text-[10px] text-slate-600">
+                                    <span class="inline-block bg-slate-100 border border-slate-300 px-1.5 py-0.5 text-[10px] font-bold">페이지: ${pageIdx + 1} / ${repeatCount}</span>
+                                </div>
+                            </div>
+
+                            <table class="w-full border-collapse border border-slate-800 text-[10px] mb-2">
+                                <tr>
+                                    <th class="border border-slate-800 bg-slate-100 p-0.5 w-1/6 text-center font-bold text-[10px]">소 속</th>
+                                    <td class="border border-slate-800 p-0.5 w-2/6 text-center text-slate-500 font-serif-kr text-[10px]">____학년 ____반 ____번</td>
+                                    <th class="border border-slate-800 bg-slate-100 p-0.5 w-1/6 text-center font-bold text-[10px]">성 명</th>
+                                    <td class="border border-slate-800 p-0.5 w-2/6 text-center text-slate-500 font-serif-kr text-[10px]">________________ (서명)</td>
+                                </tr>
+                                <tr>
+                                    <th class="border border-slate-800 bg-slate-100 p-0.5 text-center font-bold text-[10px]">지도 유형</th>
+                                    <td class="border border-slate-800 p-0.5 text-center font-semibold text-amber-900 text-[10px]">${categoryData.title}</td>
+                                    <th class="border border-slate-800 bg-slate-100 p-0.5 text-center font-bold text-[10px]">작성 일자</th>
+                                    <td class="border border-slate-800 p-0.5 text-center text-slate-500 font-serif-kr text-[10px]">202__년 __월 __일</td>
+                                </tr>
+                            </table>
+
+                            <div class="border border-slate-800 p-1.5 mb-1 bg-white">
+                                <h3 class="text-[10px] font-bold text-amber-950 mb-1 border-b border-amber-800/30 pb-0.5 flex justify-between items-center">
+                                    <span>■ [명심보감 성찰 구절 20선] 음과 뜻을 읽고 아래 줄에 바르게 쓰시오.</span>
+                                </h3>
+                                <div>
+                                    ${phrasesListHTML}
+                                </div>
+                            </div>
+                        </div>
+
+                        ${reflectionBoxHTML}
+                    </div>
+
+                    ${footerHTML}
+                `;
+
+                container.appendChild(pageDiv);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCountText();
+            renderPages();
+        });
+    </script>
+</body>
+</html>
